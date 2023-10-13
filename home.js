@@ -1,63 +1,72 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const key = "56420f32";
-    const api_website = "http://www.omdbapi.com/?apikey=" + key + "&t=";
-    
-    const searchForm = document.getElementById("home-search-form");
+    // API URL for movie search
+    const apiUrl = "http://www.omdbapi.com/?apikey=56420f32&s=";
   
+    // DOM elements
+    const searchInput = document.querySelector(".search-bar");
+    const datalist = document.getElementById("search-suggestions");
+  
+    // Function for fetching data from the API
+    function apiFetch(apiUrl) {
+      return fetch(apiUrl)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network error");
+          }
+          return response.json();
+        });
+    }
+  
+    // Function to handle search input and display suggestions
+    function handleSearchInput() {
+      const title = searchInput.value.trim();
+  
+      if (title) {
+        const url = apiUrl + title;
+        apiFetch(url)
+          .then((data) => {
+            datalist.innerHTML = "";
+  
+            if (data.Response === "True") {
+              for (let i = 0; i < data.Search.length; i++) {
+                const item = data.Search[i];
+                const option = document.createElement("option");
+                option.value = item.Title;
+                option.innerText = item.Title;
+                datalist.appendChild(option);
+              }
+            } else {
+              console.log("Search results are undefined.");
+            }
+          })
+          .catch((error) => {
+            console.error("Fetch error:", error);
+          });
+      } else {
+        datalist.innerHTML = "";
+      }
+    }
+  
+    // Event listener for input changes
+    searchInput.addEventListener("input", handleSearchInput);
+  
+    // Event listener for form submission
+    const searchForm = document.querySelector(".search-form");
     searchForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-    
-        const title = document.getElementById("home-search").value;
-        console.log('Form Submitted');
-
-        const mockData = {
-            "Title":"Star Wars: Episode IV - A New Hope",
-            "Year":"1977","Rated":"PG",
-            "Released":"25 May 1977",
-            "Runtime":"121 min",
-            "Genre":"Action, Adventure, Fantasy",
-            "Director":"George Lucas",
-            "Writer":"George Lucas",
-            "Actors":"Mark Hamill, Harrison Ford, Carrie Fisher",
-            "Plot":"Luke Skywalker joins forces with a Jedi Knight, a cocky pilot, a Wookiee and two droids to save the galaxy from the Empire's world-destroying battle station, while also attempting to rescue Princess Leia from the mysterious Darth ...",
-            "Language":"English",
-            "Country":"United States",
-            "Awards":"Won 6 Oscars. 65 wins & 31 nominations total",
-            "Poster":"https://m.media-amazon.com/images/M/MV5BOTA5NjhiOTAtZWM0ZC00MWNhLThiMzEtZDFkOTk2OTU1ZDJkXkEyXkFqcGdeQXVyMTA4NDI1NTQx._V1_SX300.jpg",
-            "Ratings":[{"Source":"Internet Movie Database","Value":"8.6/10"},{"Source":"Rotten Tomatoes","Value":"93%"},{"Source":"Metacritic","Value":"90/100"}],
-            "Metascore":"90",
-            "imdbRating":"8.6",
-            "imdbVotes":"1,415,793",
-            "imdbID":"tt0076759",
-            "Type":"movie",
-            };
-        const dataString = JSON.stringify(mockData);
-        // Encode the data using base64
-        const encodedData = btoa(dataString);
-
-        // Redirect to index.html with the encoded data as a query parameter
-        window.location.assign(`index.html?data=${encodedData}`);
+      e.preventDefault();
+      const title = searchInput.value;
+      if (title) {
+        const url = apiUrl + title;
+        apiFetch(url)
+          .then((data) => {
+            const dataString = JSON.stringify(data);
+            const encodedData = btoa(dataString);
+            window.location.assign(`index.html?data=${encodedData}`);
+          })
+          .catch((error) => {
+            console.error("Fetch error:", error);
+          });
+      }
     });
-    
-    // function apiFetch(apiUrl) {
-    //   fetch(apiUrl)
-    //     .then(response => {
-    //       if (!response.ok) {
-    //         throw new Error('Network response was not ok');
-    //       }
-    //       return response.json();
-    //     })
-    //     .then(data => {
-    //         // console.log(data.Title);
-    //         // indexCardUpdate(data);
-    //         console.log(data);
-    //         // indexCardUpdate(mockData);
-
-    //     })
-    //     .catch(error => {
-    //       console.error('There was a problem with the fetch operation:', error);
-    //     });
-    // }
-
-
-});
+  });
+  
